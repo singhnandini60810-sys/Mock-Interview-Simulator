@@ -1,87 +1,179 @@
-let currentQuestions = [];
-let currentIndex = 0;
-let answers = [];
+let currentQuestion = "";
+let currentRole = "";
 
-function startInterview(){
+async function startInterview() {
 
-    const role =
+    const apiKey =
+    document.getElementById("apiKey").value.trim();
+
+    if (!apiKey) {
+        alert("Please enter Gemini API Key");
+        return;
+    }
+
+    currentRole =
     document.getElementById("role").value;
 
-    currentQuestions =
-    questionBank[role];
+    document
+    .getElementById("interviewSection")
+    .classList.remove("hidden");
 
-    currentIndex = 0;
-    answers = [];
+    document.getElementById("feedback").innerHTML = "";
 
-    document.getElementById("interview")
-    .style.display = "block";
-
-    showQuestion();
+    await generateQuestion();
 }
 
-function showQuestion(){
+async function generateQuestion() {
 
-    document.getElementById("question")
-    .innerText =
-    currentQuestions[currentIndex];
+    const apiKey =
+    document.getElementById("apiKey").value.trim();
 
-    document.getElementById("progress")
-    .innerText =
-    `Question ${currentIndex + 1} of ${currentQuestions.length}`;
+    document.getElementById("questionBox")
+    .innerText = "Generating question...";
 
-    document.getElementById("answer").value = "";
-}
+    try {
 
-function nextQuestion(){
+        const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    contents: [
+                        {
+                            parts: [
+                                {
+                                    text:
+                                    `Act as an interviewer for a ${currentRole} position.
+Ask exactly one technical interview question.
+Do not provide the answer.`
+                                }
+                            ]
+                        }
+                    ]
+                })
+            }
+        );
 
-    let answer =
-    document.getElementById("answer").value;
+        const data = await response.json();
 
-    answers.push(answer);
+        console.log(data);
 
-    currentIndex++;
+        if (!data.candidates) {
+            document.getElementById("questionBox").innerText =
+            "API Error. Check console (F12).";
+            return;
+        }
 
-    if(currentIndex < currentQuestions.length){
+        currentQuestion =
+        data.candidates[0].content.parts[0].text;
 
-        showQuestion();
+        document.getElementById("questionBox")
+        .innerText = currentQuestion;
 
-    }else{
+    }
+    catch (error) {
 
-        finishInterview();
+        console.error(error);
 
+        document.getElementById("questionBox")
+        .innerText =
+        "Failed to connect to Gemini API.";
     }
 }
 
-function finishInterview(){
+async function submitAnswer() {
 
-    let score = 0;
+    const answer =
+    document.getElementById("answer").value.trim();
 
-    answers.forEach(answer=>{
+    if (!answer) {
+        alert("Please enter an answer");
+        return;
+    }
 
-        if(answer.trim().length > 20){
-            score++;
+    const apiKey =
+    document.getElementById("apiKey").value.trim();
+
+    document.getElementById("feedback")
+    .innerText = "Evaluating answer...";
+
+    try {
+
+        const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    contents: [
+                        {
+                            parts: [
+                                {
+                                    text:
+`
+Question:
+${currentQuestion}
+
+Candidate Answer:
+${answer}
+
+Evaluate this answer.
+
+Give:
+
+Score out of 10
+
+Strengths
+
+Weaknesses
+
+Improvement suggestions
+
+One follow-up interview question
+`
+                                }
+                            ]
+                        }
+                    ]
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        console.log(data);
+
+        if (!data.candidates) {
+
+            document.getElementById("feedback")
+            .innerText =
+            "Evaluation failed. Check console (F12).";
+
+            return;
         }
 
-    });
+        document.getElementById("feedback")
+        .innerText =
+        data.candidates[0].content.parts[0].text;
 
-    document.getElementById("interview")
-    .style.display="none";
+        document.getElementById("answer").value = "";
 
-    document.getElementById("result")
-    .innerHTML = `
+        setTimeout(() => {
+            generateQuestion();
+        }, 3000);
 
-        <h2>Interview Complete</h2>
+    }
+    catch (error) {
 
-        <p>
-        Score:
-        ${score}/${currentQuestions.length}
-        </p>
+        console.error(error);
 
-        <p>
-        Answers submitted:
-        ${answers.length}
-        </p>
-
-    `;
-
+        document.getElementById("feedback")
+        .innerText =
+        "Failed to evaluate answer.";
+    }
 }
