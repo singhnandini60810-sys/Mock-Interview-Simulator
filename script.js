@@ -59,7 +59,7 @@ Do not provide the answer.`
 
         const data = await response.json();
 
-        console.log(data);
+      console.log(JSON.stringify(data, null, 2));
 
         if (!data.candidates) {
             document.getElementById("questionBox").innerText =
