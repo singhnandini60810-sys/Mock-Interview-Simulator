@@ -1,11 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>AI Mock Interview Simulator</title>
+
 <link rel="stylesheet" href="style.css">
+
 </head>
+
 <body>
 
 <div class="container">
@@ -18,10 +25,27 @@ id="apiKey"
 placeholder="Enter Gemini API Key">
 
 <select id="role">
-<option>Frontend Developer</option>
-<option>Python Developer</option>
-<option>Data Analyst</option>
-<option>Java Developer</option>
+
+<option value="Frontend Developer">
+Frontend Developer
+</option>
+
+<option value="Python Developer">
+Python Developer
+</option>
+
+<option value="Data Analyst">
+Data Analyst
+</option>
+
+<option value="Java Developer">
+Java Developer
+</option>
+
+<option value="Backend Developer">
+Backend Developer
+</option>
+
 </select>
 
 <button onclick="startInterview()">
@@ -30,9 +54,13 @@ Start Interview
 
 <div id="interviewSection" class="hidden">
 
-<h2>Question</h2>
+<h2>Current Question</h2>
 
-<div id="questionBox"></div>
+<div id="questionBox">
+
+Your interview question will appear here...
+
+</div>
 
 <textarea
 id="answer"
@@ -52,4 +80,5 @@ Submit Answer
 <script src="script.js"></script>
 
 </body>
+
 </html>
